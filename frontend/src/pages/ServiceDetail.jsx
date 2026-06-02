@@ -157,9 +157,13 @@ export default function ServiceDetail() {
           </Reveal>
           <Reveal delay={1}>
             <form onSubmit={submit} className="rounded-3xl border border-border/60 bg-card p-6 md:p-8 shadow-soft space-y-4" data-testid="service-lead-form">
+              <div className="rounded-xl border border-border/70 bg-muted/50 px-4 py-3 flex items-center justify-between">
+                <span className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Service</span>
+                <span className="text-sm font-semibold text-foreground" data-testid="lead-service-label">{s.name}</span>
+              </div>
               <div className="grid sm:grid-cols-2 gap-4">
                 <label className="block">
-                  <span className="text-xs font-semibold">Name <span className="text-red-500">*</span></span>
+                  <span className="text-xs font-semibold">Your name <span className="text-red-500">*</span></span>
                   <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="mt-1 w-full h-10 rounded-lg border border-border/70 bg-background px-3 text-sm" data-testid="lead-name" />
                 </label>
                 <label className="block">
@@ -181,13 +185,13 @@ export default function ServiceDetail() {
                 />
               </label>
               <label className="block">
-                <span className="text-xs font-semibold">Project details <span className="text-red-500">*</span></span>
-                <textarea required rows={5} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} className="mt-1 w-full rounded-lg border border-border/70 bg-background p-3 text-sm" placeholder="Goals, deadlines, references…" data-testid="lead-message" />
+                <span className="text-xs font-semibold">Tell us about your project <span className="text-red-500">*</span></span>
+                <textarea required rows={5} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} className="mt-1 w-full rounded-lg border border-border/70 bg-background p-3 text-sm" placeholder="Goals, deadline, references…" data-testid="lead-message" />
               </label>
               <button disabled={submitting} className="btn-brand w-full" data-testid="lead-submit">
                 {submitting ? "Sending…" : "Request a callback"}
               </button>
-              <p className="text-xs text-muted-foreground">We respect your privacy. We never share your details.</p>
+              <p className="text-xs text-muted-foreground">We'll only use these details to reply about your project.</p>
             </form>
           </Reveal>
         </section>

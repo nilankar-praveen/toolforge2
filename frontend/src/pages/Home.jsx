@@ -1,35 +1,16 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { ArrowRight, Sparkles, Search, ShieldCheck, Cpu, FileBadge, EyeOff, Star } from "lucide-react";
+import { ArrowRight, Search, Star } from "lucide-react";
 import { api } from "@/lib/api";
 import ToolCard from "@/components/ToolCard";
 import AdSlot from "@/components/AdSlot";
 import Reveal from "@/components/Reveal";
 import { useCommandPalette } from "@/components/CommandPalette";
-import { TESTIMONIALS, HERO_STATS, HOME_FAQ, TRUST_BADGES } from "@/data/staticContent";
+import { TESTIMONIALS, HOME_FAQ } from "@/data/staticContent";
 import { getServiceVisual } from "@/data/serviceVisuals";
 import * as Icons from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-
-function AnimatedNumber({ value, suffix = "" }) {
-  const [n, setN] = useState(0);
-  useEffect(() => {
-    const target = Number(value);
-    let raf, start;
-    const dur = 1200;
-    const step = (ts) => {
-      if (!start) start = ts;
-      const p = Math.min((ts - start) / dur, 1);
-      setN(target * (0.5 - Math.cos(Math.PI * p) / 2));
-      if (p < 1) raf = requestAnimationFrame(step);
-    };
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
-  }, [value]);
-  const display = Number.isInteger(value) ? Math.round(n) : n.toFixed(1);
-  return <span>{display}{suffix}</span>;
-}
 
 export default function Home() {
   const [tools, setTools] = useState([]);
@@ -56,22 +37,15 @@ export default function Home() {
 
         <div className="container relative">
           <Reveal>
-            <div className="inline-flex items-center gap-2 chip">
-              <Sparkles className="h-3.5 w-3.5 text-brand-violet" />
-              <span className="font-semibold">New: 25+ premium tools, zero ads in tool flow</span>
-            </div>
-          </Reveal>
-          <Reveal delay={1}>
-            <h1 className="mt-6 text-4xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight leading-[1.05] max-w-4xl">
-              The modern toolkit for{" "}
-              <span className="text-gradient">builders, teams</span>
-              <br className="hidden sm:block" /> and creators.
+            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight leading-[1.05] max-w-4xl font-heading">
+              Free online tools <br className="hidden sm:block" />
+              that <span className="text-gradient italic">just work.</span>
             </h1>
           </Reveal>
           <Reveal delay={2}>
             <p className="mt-6 max-w-2xl text-base md:text-lg text-muted-foreground leading-relaxed">
-              25+ fast, private, beautifully crafted utilities — developer formatters, text tools,
-              marketing essentials, business calculators and creative helpers. All in one place.
+              25+ small tools to format code, count words, build links, do quick math, and make things look good.
+              No sign up. Nothing to install. Use them right in your browser.
             </p>
           </Reveal>
           <Reveal delay={3}>
@@ -81,47 +55,17 @@ export default function Home() {
                 onClick={() => setOpen(true)}
                 className="inline-flex items-center gap-2 h-11 rounded-xl border border-border/70 bg-card px-4 text-sm text-muted-foreground hover:bg-secondary transition w-full sm:w-[420px] justify-between"
               >
-                <span className="flex items-center gap-2"><Search className="h-4 w-4" /> Try “JSON formatter”…</span>
+                <span className="flex items-center gap-2"><Search className="h-4 w-4" /> Try "JSON formatter"…</span>
                 <span className="kbd">⌘K</span>
               </button>
               <Link to="/tools" className="btn-brand" data-testid="hero-cta-browse">
-                Browse all tools <ArrowRight className="h-4 w-4" />
+                See all tools <ArrowRight className="h-4 w-4" />
               </Link>
               <Link to="/services" className="btn-ghost" data-testid="hero-cta-services">
-                See services
+                Our services
               </Link>
             </div>
           </Reveal>
-
-          <Reveal delay={4}>
-            <div className="mt-14 grid grid-cols-3 max-w-2xl gap-6 md:gap-10">
-              {HERO_STATS.map((s, i) => (
-                <div key={i} className="border-l border-border/70 pl-4 first:border-l-0 first:pl-0">
-                  <div className="text-2xl md:text-3xl font-extrabold text-gradient">
-                    <AnimatedNumber value={s.value} suffix={s.suffix} />
-                  </div>
-                  <div className="mt-1 text-xs md:text-sm text-muted-foreground">{s.label}</div>
-                </div>
-              ))}
-            </div>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* Trust badges */}
-      <section className="border-y border-border/60 bg-muted/20">
-        <div className="container py-8 grid grid-cols-2 md:grid-cols-4 gap-6">
-          {TRUST_BADGES.map((b) => {
-            const Icon = Icons[b.icon] || ShieldCheck;
-            return (
-              <div key={b.label} className="flex items-center gap-3 text-sm text-muted-foreground">
-                <span className="h-9 w-9 rounded-xl bg-card border border-border/60 flex items-center justify-center">
-                  <Icon className="h-4 w-4 text-brand-blue" strokeWidth={1.75} />
-                </span>
-                <span className="font-medium text-foreground">{b.label}</span>
-              </div>
-            );
-          })}
         </div>
       </section>
 
@@ -131,8 +75,8 @@ export default function Home() {
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-brand-violet font-bold">Popular tools</p>
-              <h2 className="mt-2 text-3xl md:text-4xl font-bold tracking-tight">Made to keep you in flow</h2>
-              <p className="mt-2 text-muted-foreground max-w-xl">The most loved tools, tuned for speed and clarity.</p>
+              <h2 className="mt-2 text-3xl md:text-4xl font-bold tracking-tight font-heading">Most used this week</h2>
+              <p className="mt-2 text-muted-foreground max-w-xl">Quick, simple tools people come back to.</p>
             </div>
             <Link to="/tools" className="text-sm font-semibold inline-flex items-center gap-1 text-brand-blue" data-testid="featured-see-all">
               See all tools <ArrowRight className="h-4 w-4" />
@@ -155,8 +99,8 @@ export default function Home() {
           <Reveal>
             <div className="max-w-2xl">
               <p className="text-xs uppercase tracking-[0.2em] text-brand-violet font-bold">Services</p>
-              <h2 className="mt-2 text-3xl md:text-4xl font-bold tracking-tight">Need it built? We ship.</h2>
-              <p className="mt-2 text-muted-foreground">Production-quality websites, landing pages, emails and brand creative — delivered by senior craftspeople.</p>
+              <h2 className="mt-2 text-3xl md:text-4xl font-bold tracking-tight font-heading">Need something built?</h2>
+              <p className="mt-2 text-muted-foreground">Websites, landing pages, email designs, logos and more. Tell us what you need and we'll get back within a day.</p>
             </div>
           </Reveal>
           <div className="mt-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -194,8 +138,8 @@ export default function Home() {
       <section className="container py-20 md:py-28">
         <Reveal>
           <div className="max-w-2xl">
-            <p className="text-xs uppercase tracking-[0.2em] text-brand-violet font-bold">Loved by builders</p>
-            <h2 className="mt-2 text-3xl md:text-4xl font-bold tracking-tight">Don’t take our word for it.</h2>
+            <p className="text-xs uppercase tracking-[0.2em] text-brand-violet font-bold">What people say</p>
+            <h2 className="mt-2 text-3xl md:text-4xl font-bold tracking-tight font-heading">Loved by everyday users</h2>
           </div>
         </Reveal>
         <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -205,7 +149,7 @@ export default function Home() {
                 <div className="flex items-center gap-1 text-amber-500">
                   {Array.from({ length: 5 }).map((_, idx) => <Star key={idx} className="h-3.5 w-3.5 fill-current" />)}
                 </div>
-                <blockquote className="mt-4 text-sm leading-relaxed text-foreground/90">“{t.quote}”</blockquote>
+                <blockquote className="mt-4 text-sm leading-relaxed text-foreground/90">"{t.quote}"</blockquote>
                 <figcaption className="mt-5 flex items-center gap-3">
                   <img src={t.avatar} alt={t.name} className="h-10 w-10 rounded-full object-cover" />
                   <div>
@@ -226,7 +170,7 @@ export default function Home() {
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-brand-violet font-bold">From the blog</p>
-                <h2 className="mt-2 text-3xl md:text-4xl font-bold tracking-tight">Articles & guides</h2>
+                <h2 className="mt-2 text-3xl md:text-4xl font-bold tracking-tight font-heading">Reads worth your time</h2>
               </div>
               <Link to="/blog" className="text-sm font-semibold inline-flex items-center gap-1 text-brand-blue" data-testid="blog-see-all">
                 All posts <ArrowRight className="h-4 w-4" />
@@ -264,8 +208,8 @@ export default function Home() {
           <Reveal>
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-brand-violet font-bold">FAQ</p>
-              <h2 className="mt-2 text-3xl md:text-4xl font-bold tracking-tight">Questions, answered.</h2>
-              <p className="mt-3 text-muted-foreground">Can’t find what you need? <Link to="/contact" className="text-brand-blue font-semibold">Reach us →</Link></p>
+              <h2 className="mt-2 text-3xl md:text-4xl font-bold tracking-tight font-heading">Common questions</h2>
+              <p className="mt-3 text-muted-foreground">Can't find what you need? <Link to="/contact" className="text-brand-blue font-semibold">Ask us →</Link></p>
             </div>
           </Reveal>
           <Reveal delay={1}>
@@ -288,11 +232,11 @@ export default function Home() {
             <div className="absolute -top-24 -right-20 h-72 w-72 rounded-full bg-white/15 blur-3xl" />
             <div className="absolute -bottom-24 -left-20 h-72 w-72 rounded-full bg-black/20 blur-3xl" />
             <div className="relative max-w-2xl">
-              <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight">Ready to ship faster?</h2>
-              <p className="mt-4 text-white/85 max-w-lg">Use the tools, hire the team, or both. ToolForge is built to keep you in flow.</p>
+              <h2 className="text-3xl md:text-5xl font-bold tracking-tight font-heading">Try a tool. Or hire us.</h2>
+              <p className="mt-4 text-white/85 max-w-lg">Pick a tool from the list, or send us a quick brief and we'll get back within a day.</p>
               <div className="mt-6 flex flex-wrap gap-3">
-                <Link to="/tools" className="inline-flex items-center gap-2 rounded-xl bg-white text-brand-navy px-5 py-3 text-sm font-semibold hover:bg-white/95" data-testid="footer-cta-tools">Browse tools</Link>
-                <Link to="/contact" className="inline-flex items-center gap-2 rounded-xl border border-white/40 px-5 py-3 text-sm font-semibold hover:bg-white/10" data-testid="footer-cta-contact">Talk to us</Link>
+                <Link to="/tools" className="inline-flex items-center gap-2 rounded-xl bg-white text-brand-navy px-5 py-3 text-sm font-semibold hover:bg-white/95" data-testid="footer-cta-tools">Open tools</Link>
+                <Link to="/contact" className="inline-flex items-center gap-2 rounded-xl border border-white/40 px-5 py-3 text-sm font-semibold hover:bg-white/10" data-testid="footer-cta-contact">Get a quote</Link>
               </div>
             </div>
           </div>

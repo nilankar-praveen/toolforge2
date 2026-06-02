@@ -20,6 +20,7 @@ load_dotenv(ROOT_DIR / ".env")
 
 import os
 import logging
+import re
 import secrets
 from datetime import datetime, timezone, timedelta
 from typing import Annotated, Any, List, Optional
@@ -543,15 +544,68 @@ async def delete_service(service_id: str, user: dict = Depends(require_admin)):
 
 
 # ---------- Contact / Leads ----------
+CONTACT_RATE_LIMIT_MAX = 3      # per IP per window
+CONTACT_RATE_LIMIT_WINDOW = 60  # minutes
+SPAM_BLOCKLIST = (
+    "viagra", "casino", "crypto giveaway", "loan offer", "buy followers",
+    "bitcoin doubler", "porn", "seo backlinks", "hack", "weight loss pills",
+    "earn $", "make money fast",
+)
+
+
+def looks_like_spam(payload: dict) -> Optional[str]:
+    msg = (payload.get("message") or "").strip()
+    name = (payload.get("name") or "").strip()
+    if len(msg) < 10:
+        return "Message is too short."
+    if len(re.findall(r"https?://", msg, flags=re.I)) >= 3:
+        return "Too many links in the message."
+    low = (msg + " " + name).lower()
+    for term in SPAM_BLOCKLIST:
+        if term in low:
+            return "Message blocked by spam filter."
+    if re.search(r"(.)\1{15,}", msg):
+        return "Message blocked by spam filter."
+    return None
+
+
+async def check_contact_rate_limit(ip: Optional[str]) -> None:
+    if not ip:
+        return
+    since = now_utc() - timedelta(minutes=CONTACT_RATE_LIMIT_WINDOW)
+    count = await db.contact_requests.count_documents({"ip": ip, "created_at": {"$gte": since}})
+    if count >= CONTACT_RATE_LIMIT_MAX:
+        raise HTTPException(
+            status_code=429,
+            detail="Too many submissions from this address. Please try again later.",
+        )
+
+
 @api.post("/contact")
 async def submit_contact(payload: ContactIn, request: Request):
+    ip = request.client.host if request.client else None
+    await check_contact_rate_limit(ip)
+
     doc = payload.model_dump()
-    doc["ip"] = request.client.host if request.client else None
+    spam_reason = looks_like_spam(doc)
+    if spam_reason:
+        # Quietly store it as spam — do NOT notify the owner.
+        doc.update({
+            "ip": ip,
+            "user_agent": request.headers.get("user-agent"),
+            "created_at": now_utc(),
+            "status": "spam",
+            "spam_reason": spam_reason,
+        })
+        await db.contact_requests.insert_one(doc)
+        # Respond ok=true to avoid letting spammers fingerprint the filter
+        return {"ok": True, "id": "filtered"}
+
+    doc["ip"] = ip
     doc["user_agent"] = request.headers.get("user-agent")
     doc["created_at"] = now_utc()
     doc["status"] = "new"
     result = await db.contact_requests.insert_one(doc)
-    # Notify configured recipients (email + WhatsApp) — best-effort, never blocks the response
     try:
         await notify_lead({**doc, "id": str(result.inserted_id)})
     except Exception as e:

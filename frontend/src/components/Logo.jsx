@@ -1,32 +1,25 @@
 import { Link } from "react-router-dom";
 
 const LOGO_URL =
-  "https://customer-assets.emergentagent.com/job_87f717b2-6172-4fd1-b99d-f8ddd2327003/artifacts/rdgevvlw_ToolForge.png";
+  "https://customer-assets.emergentagent.com/job_forge-next-3/artifacts/bugix8ks_ToolForge.png";
 
-export default function Logo({ size = 36, withText = true, className = "" }) {
+export const FAVICON_URL =
+  "https://customer-assets.emergentagent.com/job_forge-next-3/artifacts/4bebn3po_fav.png";
+
+export default function Logo({ height = 40, className = "" }) {
   return (
     <Link
       to="/"
       data-testid="logo-link"
-      className={`inline-flex items-center gap-2 group ${className}`}
+      className={`relative inline-flex items-center justify-center group ${className}`}
     >
-      <span
-        className="relative inline-flex items-center justify-center"
-        style={{ width: size, height: size }}
-      >
-        <img
-          src={LOGO_URL}
-          alt="ToolForge"
-          className="h-full w-full object-contain"
-          draggable={false}
-        />
-      </span>
-      {withText && (
-        <span className="font-heading text-lg font-extrabold tracking-tight">
-          <span className="text-foreground">Tool</span>
-          <span className="text-gradient">Forge</span>
-        </span>
-      )}
+      <img
+        src={LOGO_URL}
+        alt="ToolForge"
+        style={{ height }}
+        className="w-auto object-contain"
+        draggable={false}
+      />
     </Link>
   );
 }

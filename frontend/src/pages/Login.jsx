@@ -40,12 +40,12 @@ export default function Login() {
           <div className="h-20 w-20 mb-8 bg-white/10 rounded-2xl p-2 backdrop-blur-sm">
             <img src={LOGO_URL} alt="ToolForge" className="h-full w-full object-contain" />
           </div>
-          <h2 className="text-3xl font-extrabold tracking-tight">Welcome to the ToolForge admin.</h2>
-          <p className="mt-3 text-white/85">Manage tools, services, blog posts, contacts and ads from one premium dashboard.</p>
+          <h2 className="text-3xl font-bold tracking-tight font-heading">ToolForge admin</h2>
+          <p className="mt-3 text-white/85">Edit tools, posts, services, contacts and settings — all in one place.</p>
           <ul className="mt-8 space-y-3 text-sm">
-            <li className="flex items-center gap-2"><Lock className="h-4 w-4" /> Role-based access, audit log enabled.</li>
-            <li className="flex items-center gap-2"><Lock className="h-4 w-4" /> Brute-force protected sign-in.</li>
-            <li className="flex items-center gap-2"><Lock className="h-4 w-4" /> 12-hour JWT sessions.</li>
+            <li className="flex items-center gap-2"><Lock className="h-4 w-4" /> Role-based access with full audit log.</li>
+            <li className="flex items-center gap-2"><Lock className="h-4 w-4" /> Sign-in protected against brute force.</li>
+            <li className="flex items-center gap-2"><Lock className="h-4 w-4" /> 12-hour secure sessions.</li>
           </ul>
         </div>
       </div>
@@ -54,8 +54,8 @@ export default function Login() {
         <div className="absolute top-6 right-6"><ThemeToggle /></div>
         <div className="w-full max-w-md">
           <Logo />
-          <h1 className="mt-8 text-3xl font-extrabold tracking-tight">Sign in</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Authorized personnel only.</p>
+          <h1 className="mt-8 text-3xl font-bold tracking-tight font-heading">Sign in</h1>
+          <p className="mt-2 text-sm text-muted-foreground">Admin access only.</p>
 
           <form onSubmit={submit} className="mt-8 space-y-4" data-testid="login-form">
             <label className="block">

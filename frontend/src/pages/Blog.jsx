@@ -25,10 +25,10 @@ export default function Blog() {
     <div data-testid="blog-page" className="container py-12 md:py-16">
       <Reveal>
         <p className="text-xs uppercase tracking-[0.2em] text-brand-violet font-bold">Blog</p>
-        <h1 className="mt-2 text-4xl md:text-5xl font-extrabold tracking-tight">
-          Notes from the <span className="text-gradient">forge.</span>
+        <h1 className="mt-2 text-4xl md:text-5xl font-bold tracking-tight font-heading">
+          Tips, guides and <span className="text-gradient italic">updates.</span>
         </h1>
-        <p className="mt-3 max-w-2xl text-muted-foreground">Guides, engineering deep-dives and product updates.</p>
+        <p className="mt-3 max-w-2xl text-muted-foreground">Short reads to help you get more done.</p>
       </Reveal>
 
       <div className="mt-8 flex flex-col md:flex-row gap-3">

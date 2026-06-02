@@ -15,12 +15,12 @@ export default function Services() {
       <Reveal>
         <div className="inline-flex items-center gap-2 chip">
           <Sparkles className="h-3.5 w-3.5 text-brand-violet" />
-          <span className="font-semibold">Done-for-you services</span>
+          <span className="font-semibold">Done-for-you work</span>
         </div>
-        <h1 className="mt-5 text-4xl md:text-5xl font-extrabold tracking-tight">
-          Hand-crafted, <span className="text-gradient">production-grade</span> work.
+        <h1 className="mt-5 text-4xl md:text-5xl font-bold tracking-tight font-heading">
+          Need something built? <span className="text-gradient italic">We can help.</span>
         </h1>
-        <p className="mt-3 max-w-2xl text-muted-foreground">From websites to logos and restored photos — done by senior craftspeople, shipped fast, polished to a premium standard.</p>
+        <p className="mt-3 max-w-2xl text-muted-foreground">If you need a website, a landing page, a logo, an email design, or an old photo touched up — just tell us what you need and we'll send a quote within a day.</p>
       </Reveal>
 
       <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -48,10 +48,10 @@ export default function Tools() {
     <div data-testid="tools-page" className="container py-12 md:py-16">
       <Reveal>
         <p className="text-xs uppercase tracking-[0.2em] text-brand-violet font-bold">Tools</p>
-        <h1 className="mt-2 text-4xl md:text-5xl font-extrabold tracking-tight">
-          Find the right tool. <span className="text-gradient">Fast.</span>
+        <h1 className="mt-2 text-4xl md:text-5xl font-bold tracking-tight font-heading">
+          All tools, <span className="text-gradient italic">one place.</span>
         </h1>
-        <p className="mt-3 max-w-2xl text-muted-foreground">25+ curated utilities. Filter by category, search by name, sort by popularity.</p>
+        <p className="mt-3 max-w-2xl text-muted-foreground">25+ free online tools. Search by name or filter by category.</p>
       </Reveal>
 
       <div className="mt-8 flex flex-col md:flex-row gap-3">

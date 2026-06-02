@@ -51,8 +51,8 @@ export default function Footer() {
           <div className="col-span-2">
             <Logo />
             <p className="mt-4 text-sm text-muted-foreground max-w-xs leading-relaxed">
-              ToolForge is a modern platform of fast, private utility, developer, text, creative,
-              marketing and business tools — built by craftspeople, for builders.
+              Free online tools for developers, writers, marketers and small businesses.
+              We also build websites, logos and emails when you need a hand.
             </p>
             <div className="mt-6 flex items-center gap-2">
               <a data-testid="footer-twitter" href="https://twitter.com" target="_blank" rel="noreferrer" className="h-9 w-9 inline-flex items-center justify-center rounded-xl border border-border/60 bg-card hover:bg-secondary"><Twitter className="h-4 w-4" /></a>
@@ -78,8 +78,8 @@ export default function Footer() {
         </div>
 
         <div className="mt-12 pt-6 border-t border-border/60 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} ToolForge. Crafted for builders.</p>
-          <p className="text-xs text-muted-foreground">All tools that run in your browser keep your data on your device.</p>
+          <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} ToolForge. Made with care.</p>
+          <p className="text-xs text-muted-foreground">Tools that run in your browser keep your data on your device.</p>
         </div>
       </div>
     </footer>

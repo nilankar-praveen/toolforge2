@@ -6,7 +6,7 @@ module.exports = {
     container: { center: true, padding: "1rem", screens: { "2xl": "1320px" } },
     extend: {
       fontFamily: {
-        heading: ['"Plus Jakarta Sans"', "system-ui", "sans-serif"],
+        heading: ['"Playfair Display"', "Georgia", "serif"],
         sans: ['"DM Sans"', "system-ui", "sans-serif"],
         mono: ['"JetBrains Mono"', "ui-monospace", "monospace"],
       },
