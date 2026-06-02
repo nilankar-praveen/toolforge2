@@ -174,7 +174,7 @@ class LoginIn(BaseModel):
 class ContactIn(BaseModel):
     name: str = Field(min_length=1, max_length=120)
     email: EmailStr
-    phone: Optional[str] = None
+    phone: str = Field(min_length=7, max_length=30)
     subject: Optional[str] = "general"
     service: Optional[str] = None
     message: str = Field(min_length=1, max_length=4000)
@@ -255,6 +255,8 @@ class SettingsIn(BaseModel):
     seo_default_description: Optional[str] = None
     social: Optional[dict] = None
     footer_text: Optional[str] = None
+    notify_email: Optional[str] = None
+    notify_whatsapp: Optional[str] = None
 
 
 # ---------- App ----------
@@ -549,7 +551,103 @@ async def submit_contact(payload: ContactIn, request: Request):
     doc["created_at"] = now_utc()
     doc["status"] = "new"
     result = await db.contact_requests.insert_one(doc)
+    # Notify configured recipients (email + WhatsApp) — best-effort, never blocks the response
+    try:
+        await notify_lead({**doc, "id": str(result.inserted_id)})
+    except Exception as e:
+        logger.exception("notify_lead failed: %s", e)
     return {"ok": True, "id": str(result.inserted_id)}
+
+
+async def notify_lead(lead: dict) -> None:
+    """Send the lead to the configured email + WhatsApp.
+
+    Real providers (Resend / SMTP / Twilio) are activated when the matching
+    env vars are present. Otherwise this just logs the lead so it is never lost.
+    """
+    settings = await db.settings.find_one({"_id": "site"}) or {}
+    notify_email = os.environ.get("NOTIFY_EMAIL") or settings.get("notify_email")
+    notify_whatsapp = os.environ.get("NOTIFY_WHATSAPP") or settings.get("notify_whatsapp")
+
+    summary = (
+        f"New ToolForge lead\n"
+        f"Name: {lead.get('name')}\n"
+        f"Email: {lead.get('email')}\n"
+        f"Phone: {lead.get('phone')}\n"
+        f"Service: {lead.get('service') or '-'}\n"
+        f"Subject: {lead.get('subject')}\n"
+        f"Source: {lead.get('source')}\n"
+        f"Message:\n{lead.get('message')}\n"
+    )
+
+    # 1) Email via Resend (preferred) or SMTP — only when keys are present
+    resend_key = os.environ.get("RESEND_API_KEY")
+    smtp_user = os.environ.get("SMTP_USER")
+    sent_email = False
+    if notify_email:
+        if resend_key:
+            try:
+                import requests
+                r = requests.post(
+                    "https://api.resend.com/emails",
+                    headers={"Authorization": f"Bearer {resend_key}", "Content-Type": "application/json"},
+                    json={
+                        "from": os.environ.get("RESEND_FROM", "ToolForge <onboarding@resend.dev>"),
+                        "to": [notify_email],
+                        "subject": f"New lead · {lead.get('name')} · {lead.get('service') or lead.get('subject')}",
+                        "text": summary,
+                    },
+                    timeout=10,
+                )
+                sent_email = r.ok
+                if not r.ok:
+                    logger.error("Resend error %s: %s", r.status_code, r.text)
+            except Exception as e:
+                logger.exception("Resend send failed: %s", e)
+        elif smtp_user:
+            try:
+                import smtplib
+                from email.message import EmailMessage
+                msg = EmailMessage()
+                msg["Subject"] = f"New lead · {lead.get('name')} · {lead.get('service') or lead.get('subject')}"
+                msg["From"] = smtp_user
+                msg["To"] = notify_email
+                msg.set_content(summary)
+                host = os.environ.get("SMTP_HOST", "smtp.gmail.com")
+                port = int(os.environ.get("SMTP_PORT", "587"))
+                with smtplib.SMTP(host, port) as s:
+                    s.starttls()
+                    s.login(smtp_user, os.environ["SMTP_PASS"])
+                    s.send_message(msg)
+                sent_email = True
+            except Exception as e:
+                logger.exception("SMTP send failed: %s", e)
+
+    # 2) WhatsApp via Twilio — only when keys are present
+    sent_wa = False
+    twilio_sid = os.environ.get("TWILIO_ACCOUNT_SID")
+    twilio_token = os.environ.get("TWILIO_AUTH_TOKEN")
+    twilio_from = os.environ.get("TWILIO_WHATSAPP_FROM")  # e.g. whatsapp:+14155238886
+    if notify_whatsapp and twilio_sid and twilio_token and twilio_from:
+        try:
+            import requests
+            to = notify_whatsapp if notify_whatsapp.startswith("whatsapp:") else f"whatsapp:{notify_whatsapp}"
+            r = requests.post(
+                f"https://api.twilio.com/2010-04-01/Accounts/{twilio_sid}/Messages.json",
+                data={"From": twilio_from, "To": to, "Body": summary},
+                auth=(twilio_sid, twilio_token),
+                timeout=10,
+            )
+            sent_wa = r.ok
+            if not r.ok:
+                logger.error("Twilio error %s: %s", r.status_code, r.text)
+        except Exception as e:
+            logger.exception("Twilio send failed: %s", e)
+
+    logger.info(
+        "Lead notification — email_sent=%s whatsapp_sent=%s recipient=%s wa=%s",
+        sent_email, sent_wa, notify_email, notify_whatsapp,
+    )
 
 
 @api.get("/admin/contacts")
@@ -1104,13 +1202,26 @@ async def seed():
             "_id": "site",
             "site_name": "ToolForge",
             "tagline": "Modern tools for builders, teams and creators.",
-            "contact_email": "hello@toolforge.io",
-            "contact_phone": "+1 (555) 010-0420",
+            "contact_email": "nilankar.praveen@gmail.com",
             "seo_default_title": "ToolForge — Modern Tools for Builders",
             "seo_default_description": "Fast, private, premium utility, developer, text, marketing and business tools — and bespoke services to ship faster.",
             "footer_text": "© ToolForge. Crafted for builders.",
+            "notify_email": "nilankar.praveen@gmail.com",
+            "notify_whatsapp": "+918886028885",
             "social": {"twitter": "https://twitter.com", "github": "https://github.com", "linkedin": "https://linkedin.com"},
         })
+    else:
+        # Ensure notification targets are present even on previously-seeded DBs
+        patch = {}
+        if not existing_settings.get("notify_email"):
+            patch["notify_email"] = "nilankar.praveen@gmail.com"
+        if not existing_settings.get("notify_whatsapp"):
+            patch["notify_whatsapp"] = "+918886028885"
+        if "contact_phone" in existing_settings:
+            # We no longer display a phone number publicly — keep notify_whatsapp privately.
+            patch["contact_phone"] = ""
+        if patch:
+            await db.settings.update_one({"_id": "site"}, {"$set": patch})
 
     # Indexes
     await db.users.create_index("email", unique=True)

@@ -11,13 +11,13 @@ export default function Logo({ size = 36, withText = true, className = "" }) {
       className={`inline-flex items-center gap-2 group ${className}`}
     >
       <span
-        className="relative inline-flex items-center justify-center rounded-xl overflow-hidden"
+        className="relative inline-flex items-center justify-center"
         style={{ width: size, height: size }}
       >
         <img
           src={LOGO_URL}
           alt="ToolForge"
-          className="absolute inset-0 h-full w-full object-cover"
+          className="h-full w-full object-contain"
           draggable={false}
         />
       </span>

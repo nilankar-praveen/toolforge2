@@ -8,6 +8,7 @@ import AdSlot from "@/components/AdSlot";
 import Reveal from "@/components/Reveal";
 import { useCommandPalette } from "@/components/CommandPalette";
 import { TESTIMONIALS, HERO_STATS, HOME_FAQ, TRUST_BADGES } from "@/data/staticContent";
+import { getServiceVisual } from "@/data/serviceVisuals";
 import * as Icons from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
@@ -160,18 +161,27 @@ export default function Home() {
           </Reveal>
           <div className="mt-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
             {services.map((s, i) => {
-              const Icon = Icons[s.icon] || Icons.Briefcase;
+              const v = getServiceVisual(s.slug);
+              const Icon = Icons[v.icon] || Icons[s.icon] || Icons.Briefcase;
               return (
                 <Reveal key={s.slug} delay={(i % 4) + 1}>
                   <Link
                     to={`/services/${s.slug}`}
                     data-testid={`home-service-${s.slug}`}
-                    className="group block h-full rounded-2xl border border-border/60 bg-card p-6 transition-all hover:-translate-y-1 hover:shadow-hover hover:border-brand-blue/40"
+                    className="group block h-full rounded-2xl border border-border/60 bg-card overflow-hidden transition-all hover:-translate-y-1 hover:shadow-hover hover:border-brand-blue/40"
                   >
-                    <div className="tool-card-icon"><Icon className="h-5 w-5" strokeWidth={1.75} /></div>
-                    <h3 className="mt-4 font-heading text-lg font-semibold">{s.name}</h3>
-                    <p className="mt-2 text-sm text-muted-foreground line-clamp-3">{s.tagline}</p>
-                    <p className="mt-4 text-xs text-brand-blue font-bold">from {s.starting_price}</p>
+                    <div className={`relative h-24 bg-gradient-to-br ${v.gradient} overflow-hidden`}>
+                      <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-white/20 blur-2xl" />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="h-12 w-12 rounded-xl bg-white/15 backdrop-blur-md border border-white/30 flex items-center justify-center">
+                          <Icon className="h-5 w-5 text-white" strokeWidth={1.6} />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="p-5">
+                      <h3 className="font-heading text-base font-semibold leading-snug">{s.name}</h3>
+                      <p className="mt-1.5 text-sm text-muted-foreground line-clamp-2">{s.tagline}</p>
+                    </div>
                   </Link>
                 </Reveal>
               );

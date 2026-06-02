@@ -37,8 +37,8 @@ export default function Login() {
         <div className="absolute -top-24 -right-20 h-96 w-96 rounded-full bg-white/15 blur-3xl animate-blob" />
         <div className="absolute -bottom-24 -left-20 h-96 w-96 rounded-full bg-black/30 blur-3xl animate-blob" />
         <div className="relative max-w-md">
-          <div className="h-16 w-16 rounded-2xl overflow-hidden shadow-ink mb-8 bg-white/10">
-            <img src={LOGO_URL} alt="ToolForge" className="h-full w-full object-cover" />
+          <div className="h-20 w-20 mb-8 bg-white/10 rounded-2xl p-2 backdrop-blur-sm">
+            <img src={LOGO_URL} alt="ToolForge" className="h-full w-full object-contain" />
           </div>
           <h2 className="text-3xl font-extrabold tracking-tight">Welcome to the ToolForge admin.</h2>
           <p className="mt-3 text-white/85">Manage tools, services, blog posts, contacts and ads from one premium dashboard.</p>
