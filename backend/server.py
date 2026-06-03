@@ -264,6 +264,8 @@ class SettingsIn(BaseModel):
     footer_text: Optional[str] = None
     notify_email: Optional[str] = None
     notify_whatsapp: Optional[str] = None
+    adsense_publisher_id: Optional[str] = None   # e.g. ca-pub-1234567890
+    adsense_enabled: Optional[bool] = False
 
 
 # ---------- App ----------
@@ -759,6 +761,28 @@ async def update_contact(contact_id: str, payload: dict, user: dict = Depends(re
         raise HTTPException(status_code=404, detail="Contact not found")
     await audit(user, "contact.update", contact_id, allowed)
     return serialize(await db.contact_requests.find_one({"_id": ObjectId(contact_id)}))
+
+
+@api.delete("/admin/contacts/{contact_id}")
+async def delete_contact(contact_id: str, user: dict = Depends(require_admin)):
+    result = await db.contact_requests.delete_one({"_id": ObjectId(contact_id)})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Contact not found")
+    await audit(user, "contact.delete", contact_id)
+    return {"ok": True}
+
+
+@api.post("/admin/contacts/purge")
+async def purge_contacts(payload: dict, user: dict = Depends(require_admin)):
+    """Bulk-delete contacts. Body: {"status": "spam"|"new"|...} or {"all": true}."""
+    if payload.get("all"):
+        result = await db.contact_requests.delete_many({})
+    elif payload.get("status"):
+        result = await db.contact_requests.delete_many({"status": payload["status"]})
+    else:
+        raise HTTPException(status_code=400, detail="Provide status or all=true")
+    await audit(user, "contact.purge", "bulk", {"deleted": result.deleted_count})
+    return {"ok": True, "deleted": result.deleted_count}
 
 
 # ---------- Pages ----------
