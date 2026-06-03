@@ -29,8 +29,8 @@ import bcrypt
 import certifi
 import jwt
 from bson import ObjectId
-from fastapi import (APIRouter, Depends, FastAPI, HTTPException, Query,
-                     Request, Response, status)
+from fastapi import (APIRouter, BackgroundTasks, Depends, FastAPI,
+                     HTTPException, Query, Request, Response, status)
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, BeforeValidator, ConfigDict, EmailStr, Field
 from starlette.middleware.cors import CORSMiddleware
@@ -603,7 +603,7 @@ async def check_contact_rate_limit(ip: Optional[str]) -> None:
 
 
 @api.post("/contact")
-async def submit_contact(payload: ContactIn, request: Request):
+async def submit_contact(payload: ContactIn, request: Request, background: BackgroundTasks):
     ip = request.client.host if request.client else None
     await check_contact_rate_limit(ip)
 
@@ -627,11 +627,18 @@ async def submit_contact(payload: ContactIn, request: Request):
     doc["created_at"] = now_utc()
     doc["status"] = "new"
     result = await db.contact_requests.insert_one(doc)
+    # Run notification asynchronously so the API responds immediately —
+    # SMTP/Resend/Twilio can take 5-30s and would otherwise time out behind
+    # Cloudflare/Render (502).
+    background.add_task(_notify_lead_safe, {**doc, "id": str(result.inserted_id)})
+    return {"ok": True, "id": str(result.inserted_id)}
+
+
+async def _notify_lead_safe(lead: dict) -> None:
     try:
-        await notify_lead({**doc, "id": str(result.inserted_id)})
+        await notify_lead(lead)
     except Exception as e:
         logger.exception("notify_lead failed: %s", e)
-    return {"ok": True, "id": str(result.inserted_id)}
 
 
 async def notify_lead(lead: dict) -> None:
@@ -681,6 +688,7 @@ async def notify_lead(lead: dict) -> None:
                 logger.exception("Resend send failed: %s", e)
         elif smtp_user:
             try:
+                import asyncio
                 import smtplib
                 from email.message import EmailMessage
                 msg = EmailMessage()
@@ -690,10 +698,15 @@ async def notify_lead(lead: dict) -> None:
                 msg.set_content(summary)
                 host = os.environ.get("SMTP_HOST", "smtp.gmail.com")
                 port = int(os.environ.get("SMTP_PORT", "587"))
-                with smtplib.SMTP(host, port) as s:
-                    s.starttls()
-                    s.login(smtp_user, os.environ["SMTP_PASS"])
-                    s.send_message(msg)
+                smtp_pass = os.environ["SMTP_PASS"]
+
+                def _send():
+                    with smtplib.SMTP(host, port, timeout=15) as s:
+                        s.starttls()
+                        s.login(smtp_user, smtp_pass)
+                        s.send_message(msg)
+
+                await asyncio.to_thread(_send)
                 sent_email = True
             except Exception as e:
                 logger.exception("SMTP send failed: %s", e)
