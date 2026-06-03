@@ -26,6 +26,7 @@ from datetime import datetime, timezone, timedelta
 from typing import Annotated, Any, List, Optional
 
 import bcrypt
+import certifi
 import jwt
 from bson import ObjectId
 from fastapi import (APIRouter, Depends, FastAPI, HTTPException, Query,
@@ -36,7 +37,12 @@ from starlette.middleware.cors import CORSMiddleware
 
 # ---------- Mongo ----------
 mongo_url = os.environ["MONGO_URL"]
-client = AsyncIOMotorClient(mongo_url)
+_mongo_kwargs: dict = {"serverSelectionTimeoutMS": 8000}
+# Only apply certifi CA bundle when talking to Atlas (mongodb+srv://...).
+# Plain mongodb:// connections (local dev) don't speak TLS by default.
+if mongo_url.startswith("mongodb+srv://") or "tls=true" in mongo_url.lower():
+    _mongo_kwargs["tlsCAFile"] = certifi.where()
+client = AsyncIOMotorClient(mongo_url, **_mongo_kwargs)
 db = client[os.environ["DB_NAME"]]
 
 JWT_ALGORITHM = "HS256"
@@ -273,11 +279,15 @@ async def root():
 
 @api.get("/health")
 async def health():
+    # Fast health check — must respond immediately so the platform marks
+    # the service as live. We probe Mongo with a short timeout and never
+    # fail the health endpoint based on DB state.
+    import asyncio
     try:
-        await db.command("ping")
+        await asyncio.wait_for(db.command("ping"), timeout=5.0)
         return {"status": "ok", "db": "ok"}
     except Exception as e:
-        return {"status": "degraded", "db": str(e)}
+        return {"status": "ok", "db": f"unreachable: {type(e).__name__}"}
 
 
 # ---------- Auth ----------
@@ -1289,11 +1299,18 @@ async def seed():
 
 @app.on_event("startup")
 async def on_startup():
-    try:
-        await seed()
-        logger.info("Seed completed")
-    except Exception as e:
-        logger.exception("Seed error: %s", e)
+    # Run seed in background so the server becomes healthy immediately
+    # even if MongoDB is slow on the first connection.
+    import asyncio
+
+    async def _seed_safely():
+        try:
+            await seed()
+            logger.info("Seed completed")
+        except Exception as e:
+            logger.exception("Seed error: %s", e)
+
+    asyncio.create_task(_seed_safely())
 
 
 @app.on_event("shutdown")
