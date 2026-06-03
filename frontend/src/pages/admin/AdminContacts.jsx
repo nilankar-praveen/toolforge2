@@ -69,6 +69,7 @@ export default function AdminContacts() {
             <tr>
               <th className="text-left p-3">Name</th>
               <th className="text-left p-3">Email</th>
+              <th className="text-left p-3">Phone</th>
               <th className="text-left p-3">Subject</th>
               <th className="text-left p-3">Service</th>
               <th className="text-left p-3">Created</th>
@@ -81,6 +82,7 @@ export default function AdminContacts() {
               <tr key={c.id} data-testid={`contact-row-${c.id}`}>
                 <td className="p-3 font-medium">{c.name}</td>
                 <td className="p-3 text-muted-foreground">{c.email}</td>
+                <td className="p-3 text-muted-foreground tabular-nums">{c.phone || "—"}</td>
                 <td className="p-3">{c.subject}</td>
                 <td className="p-3 text-muted-foreground">{c.service || "—"}</td>
                 <td className="p-3 text-xs text-muted-foreground">{new Date(c.created_at).toLocaleString()}</td>
@@ -106,7 +108,7 @@ export default function AdminContacts() {
                 </td>
               </tr>
             ))}
-            {filtered.length === 0 && <tr><td className="p-6 text-sm text-muted-foreground text-center" colSpan={7}>No requests.</td></tr>}
+            {filtered.length === 0 && <tr><td className="p-6 text-sm text-muted-foreground text-center" colSpan={8}>No requests.</td></tr>}
           </tbody>
         </table>
       </div>

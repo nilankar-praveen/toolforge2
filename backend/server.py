@@ -303,6 +303,37 @@ async def health():
         return {"status": "ok", "db": f"unreachable: {type(e).__name__}"}
 
 
+@api.get("/diag/notifications")
+async def diag_notifications():
+    """Diagnose which notification channels are configured. Safe — no secrets."""
+    settings = await db.settings.find_one({"_id": "site"}) or {}
+    smtp_user = os.environ.get("SMTP_USER", "")
+    smtp_pass_set = bool(os.environ.get("SMTP_PASS"))
+    return {
+        "email": {
+            "smtp_host": os.environ.get("SMTP_HOST", "smtp.gmail.com"),
+            "smtp_port": os.environ.get("SMTP_PORT", "587"),
+            "smtp_user_set": bool(smtp_user),
+            "smtp_user_preview": (smtp_user[:3] + "***@" + smtp_user.split("@", 1)[1]) if "@" in smtp_user else None,
+            "smtp_pass_set": smtp_pass_set,
+            "notify_email_env": bool(os.environ.get("NOTIFY_EMAIL")),
+            "notify_email_db": bool(settings.get("notify_email")),
+            "resend_api_key_set": bool(os.environ.get("RESEND_API_KEY")),
+        },
+        "whatsapp": {
+            "twilio_sid_set": bool(os.environ.get("TWILIO_ACCOUNT_SID")),
+            "twilio_token_set": bool(os.environ.get("TWILIO_AUTH_TOKEN")),
+            "twilio_from_set": bool(os.environ.get("TWILIO_WHATSAPP_FROM")),
+            "notify_whatsapp_env": bool(os.environ.get("NOTIFY_WHATSAPP")),
+            "notify_whatsapp_db": bool(settings.get("notify_whatsapp")),
+        },
+        "ready": bool(
+            (os.environ.get("NOTIFY_EMAIL") or settings.get("notify_email"))
+            and (os.environ.get("RESEND_API_KEY") or (smtp_user and smtp_pass_set))
+        ),
+    }
+
+
 # ---------- Auth ----------
 @api.post("/auth/login")
 async def login(payload: LoginIn, request: Request, response: Response):
