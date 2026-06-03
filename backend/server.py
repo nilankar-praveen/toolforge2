@@ -565,7 +565,7 @@ async def delete_service(service_id: str, user: dict = Depends(require_admin)):
 
 
 # ---------- Contact / Leads ----------
-CONTACT_RATE_LIMIT_MAX = 3      # per IP per window
+CONTACT_RATE_LIMIT_MAX = 10     # per IP per window
 CONTACT_RATE_LIMIT_WINDOW = 60  # minutes
 SPAM_BLOCKLIST = (
     "viagra", "casino", "crypto giveaway", "loan offer", "buy followers",
