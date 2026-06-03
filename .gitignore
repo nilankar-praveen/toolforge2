@@ -28,6 +28,13 @@ next-env.d.ts
 # Production builds
 /build
 dist/
+
+# Local secrets — never commit
+backend/.env
+frontend/.env
+*.env.local
+*.env.production
+*.env.development
 dist
 
 # Environment files (comprehensive coverage)
