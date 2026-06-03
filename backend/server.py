@@ -271,6 +271,17 @@ app = FastAPI(title="ToolForge API", version="1.0.0")
 api = APIRouter(prefix="/api")
 
 
+# ---------- Root (used by Render's default health probe at "/") ----------
+@app.get("/")
+async def root_index():
+    return {"ok": True, "service": "ToolForge API", "health": "/api/health"}
+
+
+@app.head("/")
+async def root_head():
+    return Response(status_code=200)
+
+
 # ---------- Health ----------
 @api.get("/")
 async def root():
