@@ -1,0 +1,165 @@
+{
+  "theme": "Light with Dark Mode",
+  "archetype": "Swiss & High-Contrast / Premium SaaS",
+  "colors": {
+    "light": {
+      "background": "#FFFFFF",
+      "foreground": "#0B1437",
+      "primary": "#1E5BFF",
+      "primary_foreground": "#FFFFFF",
+      "secondary": "#F3F4F6",
+      "secondary_foreground": "#0B1437",
+      "accent": "#6B3CF5",
+      "accent_foreground": "#FFFFFF",
+      "muted": "#F9FAFB",
+      "muted_foreground": "#4B5563",
+      "border": "#E5E7EB",
+      "surface": "#FFFFFF",
+      "gradient_primary": "linear-gradient(135deg, #1E5BFF 0%, #6B3CF5 100%)",
+      "gradient_hover": "linear-gradient(135deg, #2D6CFF 0%, #7C3AED 100%)"
+    },
+    "dark": {
+      "background": "#040815",
+      "foreground": "#F8FAFC",
+      "primary": "#2D6CFF",
+      "primary_foreground": "#FFFFFF",
+      "secondary": "#0F1A3F",
+      "secondary_foreground": "#F8FAFC",
+      "accent": "#7C3AED",
+      "accent_foreground": "#FFFFFF",
+      "muted": "#0B1437",
+      "muted_foreground": "#94A3B8",
+      "border": "#1E293B",
+      "surface": "#080F25",
+      "gradient_primary": "linear-gradient(135deg, #2D6CFF 0%, #7C3AED 100%)",
+      "gradient_hover": "linear-gradient(135deg, #4A81FF 0%, #8B5CF6 100%)"
+    }
+  },
+  "typography": {
+    "fonts": {
+      "heading": "Plus Jakarta Sans, sans-serif",
+      "body": "DM Sans, sans-serif",
+      "mono": "JetBrains Mono, monospace"
+    },
+    "scales": {
+      "h1": "text-5xl md:text-6xl font-extrabold tracking-tight leading-tight",
+      "h2": "text-3xl md:text-4xl font-bold tracking-tight leading-snug",
+      "h3": "text-xl md:text-2xl font-semibold tracking-tight",
+      "h4": "text-lg md:text-xl font-semibold",
+      "body": "text-base md:text-lg leading-relaxed text-muted-foreground",
+      "small": "text-sm font-medium tracking-wide text-muted-foreground",
+      "overline": "text-xs font-bold tracking-[0.2em] uppercase text-accent"
+    }
+  },
+  "spacing": {
+    "container_padding": "px-4 md:px-8 lg:px-12",
+    "section_gap": "py-24 md:py-32",
+    "element_gap": "gap-6 md:gap-8",
+    "grid_gap": "gap-8"
+  },
+  "borders_radius": {
+    "card": "rounded-2xl",
+    "button": "rounded-xl",
+    "input": "rounded-lg",
+    "chip": "rounded-full",
+    "border_width": "border border-border/40"
+  },
+  "shadows": {
+    "light": {
+      "card": "shadow-[0_8px_30px_rgb(0,0,0,0.04)]",
+      "hover": "shadow-[0_20px_40px_rgb(30,91,255,0.08)]",
+      "glass": "shadow-[0_8px_32px_rgba(11,20,55,0.05)]"
+    },
+    "dark": {
+      "card": "shadow-[0_8px_30px_rgb(0,0,0,0.4)]",
+      "hover": "shadow-[0_20px_40px_rgb(45,108,255,0.15)]",
+      "glass": "shadow-[0_8px_32px_rgba(0,0,0,0.3)]"
+    }
+  },
+  "motion": {
+    "hover": "transition-all duration-300 ease-out",
+    "reveal": "transition-all duration-700 ease-[0.16,1,0.3,1]",
+    "menu": "transition-transform duration-500 ease-[0.22,1,0.36,1]",
+    "parallax": "Framer Motion useScroll + useTransform",
+    "micro_interactions": "scale-95 active state, hover:-translate-y-1"
+  },
+  "components": {
+    "hero": {
+      "layout": "Grid-based or overlapping bento box, generous padding",
+      "visuals": "Parallax background elements, high-contrast H1, blue-purple gradient text span, command palette trigger button",
+      "background": "Clean white with floating soft gradient orbs (light) / deep navy with glowing blue/purple spots (dark)"
+    },
+    "tool_card": {
+      "layout": "Cardless or subtle rounded-2xl with glassmorphism hover",
+      "style": "Border-border/40, bg-surface, group-hover:border-primary/50, group-hover:shadow-hover",
+      "content": "Lucide icon (gradient colored), H4 title, truncated description, arrow indicator"
+    },
+    "category_chip": {
+      "layout": "Inline-flex, rounded-full, px-4 py-2",
+      "style": "bg-secondary text-secondary_foreground hover:bg-primary hover:text-white transition-colors"
+    },
+    "command_palette": {
+      "style": "Glassmorphism backdrop-blur-xl bg-background/80, 1px border, shadow-2xl",
+      "animation": "Scale up from 0.95, fade in"
+    },
+    "ad_slot": {
+      "style": "bg-muted border border-dashed border-border/50 rounded-xl flex items-center justify-center p-4",
+      "text": "text-xs text-muted-foreground uppercase tracking-widest"
+    },
+    "admin_sidebar": {
+      "style": "w-64 border-r border-border/40 bg-surface/50 backdrop-blur-md",
+      "links": "rounded-lg px-3 py-2 text-sm font-medium hover:bg-secondary/80 text-foreground/80 hover:text-foreground"
+    },
+    "glassmorphism": {
+      "light": "backdrop-blur-xl bg-white/70 border border-white/40",
+      "dark": "backdrop-blur-xl bg-black/60 border border-white/10"
+    }
+  },
+  "icons": {
+    "library": "lucide-react",
+    "style": "Stroke width 1.5, use primary/accent colors for emphasis"
+  },
+  "images": {
+    "logo": "https://customer-assets.emergentagent.com/job_87f717b2-6172-4fd1-b99d-f8ddd2327003/artifacts/rdgevvlw_ToolForge.png",
+    "hero_backgrounds": [
+      "https://images.unsplash.com/photo-1557683316-973673baf926?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2ODh8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMGJsdWUlMjBwdXJwbGUlMjBncmFkaWVudHxlbnwwfHx8fDE3ODA0MjMxMDd8MA&ixlib=rb-4.1.0&q=85",
+      "https://images.pexels.com/photos/7130473/pexels-photo-7130473.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+    ],
+    "workspace_context": [
+      "https://images.pexels.com/photos/1128207/pexels-photo-1128207.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "https://images.pexels.com/photos/3747070/pexels-photo-3747070.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+    ],
+    "testimonials": [
+      "https://images.unsplash.com/photo-1560250097-0b93528c311a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzV8MHwxfHNlYXJjaHwzfHxwcm9mZXNzaW9uYWwlMjBwb3J0cmFpdHxlbnwwfHx8fDE3ODAyMzEyNTJ8MA&ixlib=rb-4.1.0&q=85",
+      "https://images.unsplash.com/photo-1580489944761-15a19d654956?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzV8MHwxfHNlYXJjaHwyfHxwcm9mZXNzaW9uYWwlMjBwb3J0cmFpdHxlbnwwfHx8fDE3ODAyMzEyNTJ8MA&ixlib=rb-4.1.0&q=85",
+      "https://images.pexels.com/photos/12396627/pexels-photo-12396627.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+    ]
+  },
+  "dos_and_donts": {
+    "do": [
+      "Use gradient text sparingly for key emphasis (e.g., specific words in H1)",
+      "Maintain high contrast for all text (APCA standards)",
+      "Include data-testid on all interactive elements (e.g., data-testid='tool-card-copy-btn')",
+      "Use generous padding within cards to let content breathe",
+      "Ensure tool inputs/outputs use mono font for data/code"
+    ],
+    "dont": [
+      "Do NOT use the word 'AI' anywhere in public-facing UI",
+      "Do not center-align long paragraphs or dense tool settings",
+      "Do not use full-screen flat color backgrounds without texture/gradients",
+      "Do not use Inter or Space Grotesk fonts",
+      "Do not hide main nav links behind hamburger on desktop"
+    ]
+  },
+  "instructions_to_main_agent": [
+    "Install fonts: npm install @fontsource/plus-jakarta-sans @fontsource/dm-sans @fontsource/jetbrains-mono",
+    "Configure tailwind.config.js with the provided color tokens and fonts",
+    "Implement light/dark mode toggle (next-themes or standard tailwind dark mode)",
+    "Build the Command Palette (Cmd+K) using Shadcn Dialog/Command components, ensuring glassmorphism style",
+    "For the hero parallax, use framer-motion useScroll to move background floating elements slightly as the user scrolls",
+    "All navigation/footer links must be functional or explicitly marked as under construction. Tool cards must link to dynamic /tool/:id pages.",
+    "Do NOT use placeholder text for logos; always render the provided logo URL.",
+    "Make sure the admin dashboard sidebar is collapsible on mobile.",
+    "Add 'data-testid' to ALL interactive elements (buttons, links, inputs, dialogs)!"
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "summary": "ToolForge MVP — full backend + frontend testing. Backend pytest: 19/19 passed (health, tools list/categories/detail+view increment, blog list/detail, services, pages, contact create, admin login, /auth/me, protected admin endpoints with 401 when unauth, admin overview, admin lists, full CRUD for blog and tools, settings update). Frontend Playwright: home loads, theme toggle works, Cmd/Ctrl+K command palette opens, /tools shows 25 cards, login with admin@toolforge.io/ToolForge@2026 redirects to /admin, admin dashboard shows stats (25 tools, 3 posts, 7 services, 5 pages, 2 contacts), /admin protected redirect to /login works, blog list+detail render markdown. Core MVP is solid.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/auth/login", "issue": "5-attempt lockout uses ip:email key. Test env shares IPs across runs which could lock real test accounts; consider lower window or per-account-only key for staging."},
+      {"endpoint": "/api/auth/login + cookies", "issue": "Login sets cookies with samesite=none + secure but CORS allow_credentials=False. Cookies still work same-origin via ingress, but cross-origin cookie auth is effectively disabled — Bearer token fallback is the actual path. Document or align."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "CommandPalette (Radix Dialog)", "issue": "`DialogContent` requires a `DialogTitle` for screen reader users — accessibility warning in console. Wrap a title with VisuallyHidden.", "selector": "[cmdk-root] / DialogContent", "priority": "LOW"},
+      {"component": "JSON Formatter tool page", "issue": "Could not locate a clear 'Format'/'Beautify' button via common selectors. Add a data-testid (e.g. `data-testid=\"json-format-btn\"`) so the tool's primary action is reliably testable.", "selector": "tool action buttons", "priority": "LOW"}
+    ],
+    "integration_issues": [
+      {"flow": "Auth probe on public pages", "issue": "GET /api/auth/me fires on every public page load and returns 401 when not logged in, generating many console errors. Suppress 401 from this initial probe or only call it on protected pages.", "affected_selectors": ["console: 401 Failed to load resource"]}
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_toolforge_api.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "(Low) Add data-testid attributes to per-tool primary actions (Format, Encode/Decode, Generate, Build, Compute, Copy, Download) so future tests can validate each of the 25 tool runtimes.",
+    "(Low) Fix Radix DialogContent missing DialogTitle/Description in CommandPalette (a11y).",
+    "(Low) In AuthContext, swallow 401s from /api/auth/me initial probe so public pages don't log errors.",
+    "(Optional) Align CORS — either set allow_credentials=true with explicit origin to make cookie auth work cross-origin, or remove cookie setting and document Bearer-only."
+  ],
+  "critical_code_review_comments": [
+    "server.py is ~1140 lines; consider splitting into routers/{auth,tools,blog,services,pages,admin}.py for maintainability.",
+    "Mongo ObjectId serialization is handled correctly (serialize() pops _id and renames to id; password_hash stripped).",
+    "JWT secret is loaded from env — good. Access token TTL is 12h (long for an admin) — consider 1h with refresh.",
+    "Login attempt lockout key is ip:email; in shared NAT/proxy environments multiple admins from the same IP can interfere. Acceptable for MVP.",
+    "settings.update_one for site settings uses _id='site' (string) — fine, but note seed inserts with _id='site' too; consistent."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_toolforge_api.py"
+  ],
+  "success_rate": {"backend": "100% (19/19)", "frontend": "~95% (10/11 core flows verified; JSON format button selector not located but tool page loads)"},
+  "test_credentials": "admin@toolforge.io / ToolForge@2026 (from /app/memory/test_credentials.md, works)",
+  "seed_data_creation": "Backend tests create transient TEST_ prefixed blog post & tool (both deleted in same test) and 1 contact submission ('TEST_User'). Contact rows remain in DB but are harmless and namespaced.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend test suite at /app/backend/tests/test_toolforge_api.py is the regression baseline (uses Bearer token + REACT_APP_BACKEND_URL). For full per-tool frontend coverage, add data-testid to each tool's primary action button (Format/Encode/Generate/Build/Compute) and to Copy/Download — then iterate over toolsRegistry. Admin Tools/Blog/Contacts/Settings UI pages exist and admin login + dashboard work end-to-end; deeper admin CRUD via UI was not exercised in this run but the underlying APIs are 100% green.",
+  "rca_of_the_issue": "Only one transient failure during development of the test file: GET /admin/* returned 200 instead of 401 when using a session-scoped requests.Session that had been used to login earlier (cookies persisted on the session). Fixed by using a fresh requests.Session() in test_admin_unauth. No product bug."
+}

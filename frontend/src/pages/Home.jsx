@@ -1,0 +1,357 @@
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { ArrowRight, RefreshCw, Search, Star } from "lucide-react";
+import { api, apiGetWithRetry } from "@/lib/api";
+import ToolCard from "@/components/ToolCard";
+import AdSlot from "@/components/AdSlot";
+import Reveal from "@/components/Reveal";
+import Seo from "@/components/Seo";
+import { useCommandPalette } from "@/components/CommandPalette";
+import { TESTIMONIALS, HOME_FAQ } from "@/data/staticContent";
+import { getServiceVisual } from "@/data/serviceVisuals";
+import * as Icons from "lucide-react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+
+function ToolSkeleton() {
+  return (
+    <div
+      data-testid="tool-skeleton"
+      className="h-40 rounded-2xl border border-border/50 bg-card/60 overflow-hidden animate-pulse"
+    >
+      <div className="p-5 space-y-3">
+        <div className="h-9 w-9 rounded-lg bg-foreground/10" />
+        <div className="h-4 w-3/4 rounded bg-foreground/10" />
+        <div className="h-3 w-1/2 rounded bg-foreground/10" />
+      </div>
+    </div>
+  );
+}
+
+function ServiceSkeleton() {
+  return (
+    <div
+      data-testid="service-skeleton"
+      className="h-48 rounded-2xl border border-border/50 bg-card/60 overflow-hidden animate-pulse"
+    >
+      <div className="h-24 bg-foreground/5" />
+      <div className="p-5 space-y-3">
+        <div className="h-4 w-2/3 rounded bg-foreground/10" />
+        <div className="h-3 w-full rounded bg-foreground/10" />
+      </div>
+    </div>
+  );
+}
+
+export default function Home() {
+  const [tools, setTools] = useState([]);
+  const [posts, setPosts] = useState([]);
+  const [services, setServices] = useState([]);
+  const [toolsErr, setToolsErr] = useState(false);
+  const [servicesErr, setServicesErr] = useState(false);
+  const [toolsLoading, setToolsLoading] = useState(true);
+  const [servicesLoading, setServicesLoading] = useState(true);
+  const { setOpen } = useCommandPalette();
+  const { scrollY } = useScroll();
+  const blobY = useTransform(scrollY, [0, 600], [0, 80]);
+  const blobY2 = useTransform(scrollY, [0, 600], [0, -60]);
+
+  const loadTools = () => {
+    setToolsErr(false);
+    setToolsLoading(true);
+    apiGetWithRetry("/tools", { params: { featured: true } })
+      .then((r) => setTools(r.data.slice(0, 8)))
+      .catch(() => setToolsErr(true))
+      .finally(() => setToolsLoading(false));
+  };
+  const loadServices = () => {
+    setServicesErr(false);
+    setServicesLoading(true);
+    apiGetWithRetry("/services")
+      .then((r) => setServices(r.data.slice(0, 4)))
+      .catch(() => setServicesErr(true))
+      .finally(() => setServicesLoading(false));
+  };
+
+  useEffect(() => {
+    loadTools();
+    loadServices();
+    api.get("/blog/posts").then((r) => setPosts(r.data.slice(0, 3))).catch(() => {});
+  }, []);
+
+  return (
+    <div data-testid="home-page" className="overflow-x-hidden">
+      <Seo
+        title="ToolForge — 25+ Free Online Tools for Builders"
+        description="ToolForge is a free, privacy-first suite of 25+ online utilities — JSON formatter, word counter, GST calculator, QR generator, password generator and more. No sign-up. Works in your browser."
+        path="/"
+        keywords="free online tools, JSON formatter, word counter, GST calculator, QR generator, developer utilities"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          "name": "ToolForge",
+          "url": "https://toolforge-lime.vercel.app",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://toolforge-lime.vercel.app/tools?q={search_term_string}",
+            "query-input": "required name=search_term_string",
+          },
+        }}
+        noscriptContent="A free suite of 25+ browser-based tools for developers, marketers and creators. Format JSON, count words, generate QR codes, calculate GST and more — no sign-up needed."
+      />
+      {/* HERO */}
+      <section className="relative pt-16 pb-24 md:pt-24 md:pb-32">
+        <div className="absolute inset-0 grid-bg" />
+        <motion.div style={{ y: blobY }} className="blob bg-brand-blue/30 dark:bg-brand-blue/20 h-[420px] w-[420px] -top-32 -left-20 animate-blob" />
+        <motion.div style={{ y: blobY2 }} className="blob bg-brand-violet/30 dark:bg-brand-violet/20 h-[420px] w-[420px] -top-32 right-0 animate-blob" />
+
+        <div className="container relative">
+          <Reveal>
+            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight leading-[1.05] max-w-4xl font-heading">
+              Free online tools <br className="hidden sm:block" />
+              that <span className="text-gradient italic">just work.</span>
+            </h1>
+          </Reveal>
+          <Reveal delay={2}>
+            <p className="mt-6 max-w-2xl text-base md:text-lg text-muted-foreground leading-relaxed">
+              25+ small tools to format code, count words, build links, do quick math, and make things look good.
+              No sign up. Nothing to install. Use them right in your browser.
+            </p>
+          </Reveal>
+          <Reveal delay={3}>
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <button
+                data-testid="hero-search-cta"
+                onClick={() => setOpen(true)}
+                className="inline-flex items-center gap-2 h-11 rounded-xl border border-border/70 bg-card px-4 text-sm text-muted-foreground hover:bg-secondary transition w-full sm:w-[420px] justify-between"
+              >
+                <span className="flex items-center gap-2"><Search className="h-4 w-4" /> Try "JSON formatter"…</span>
+                <span className="kbd">⌘K</span>
+              </button>
+              <Link to="/tools" className="btn-brand" data-testid="hero-cta-browse">
+                See all tools <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link to="/services" className="btn-ghost" data-testid="hero-cta-services">
+                Our services
+              </Link>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* Featured tools */}
+      <section className="container py-20 md:py-28">
+        <Reveal>
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-brand-violet font-bold">Popular tools</p>
+              <h2 className="mt-2 text-3xl md:text-4xl font-bold tracking-tight font-heading">Most used this week</h2>
+              <p className="mt-2 text-muted-foreground max-w-xl">Quick, simple tools people come back to.</p>
+            </div>
+            <Link to="/tools" className="text-sm font-semibold inline-flex items-center gap-1 text-brand-blue" data-testid="featured-see-all">
+              See all tools <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </Reveal>
+        <div className="mt-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5" data-testid="home-tools-grid">
+          {toolsLoading &&
+            Array.from({ length: 8 }).map((_, i) => <ToolSkeleton key={`sk-${i}`} />)}
+          {!toolsLoading &&
+            tools.map((t, i) => (
+              <Reveal key={t.slug} delay={(i % 4) + 1}>
+                <ToolCard tool={t} index={i} />
+              </Reveal>
+            ))}
+        </div>
+        {toolsErr && !toolsLoading && (
+          <div
+            data-testid="tools-error"
+            className="mt-6 flex items-center justify-between gap-4 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm"
+          >
+            <span className="text-amber-200 dark:text-amber-300">
+              Couldn't reach the server (the free host may be waking up).
+            </span>
+            <button
+              onClick={loadTools}
+              className="inline-flex items-center gap-2 rounded-lg border border-border/60 bg-card px-3 py-1.5 text-xs font-semibold hover:bg-secondary"
+              data-testid="retry-tools"
+            >
+              <RefreshCw className="h-3.5 w-3.5" /> Retry
+            </button>
+          </div>
+        )}
+        <div className="mt-10"><AdSlot placement="in-content" /></div>
+      </section>
+
+      {/* Services */}
+      <section className="bg-muted/20 border-y border-border/60">
+        <div className="container py-20 md:py-28">
+          <Reveal>
+            <div className="max-w-2xl">
+              <p className="text-xs uppercase tracking-[0.2em] text-brand-violet font-bold">Services</p>
+              <h2 className="mt-2 text-3xl md:text-4xl font-bold tracking-tight font-heading">Need something built?</h2>
+              <p className="mt-2 text-muted-foreground">Websites, landing pages, email designs, logos and more. Tell us what you need and we'll get back within a day.</p>
+            </div>
+          </Reveal>
+          <div className="mt-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5" data-testid="home-services-grid">
+            {servicesLoading &&
+              Array.from({ length: 4 }).map((_, i) => <ServiceSkeleton key={`ssk-${i}`} />)}
+            {!servicesLoading &&
+              services.map((s, i) => {
+              const v = getServiceVisual(s.slug);
+              const Icon = Icons[v.icon] || Icons[s.icon] || Icons.Briefcase;
+              return (
+                <Reveal key={s.slug} delay={(i % 4) + 1}>
+                  <Link
+                    to={`/services/${s.slug}`}
+                    data-testid={`home-service-${s.slug}`}
+                    className="group block h-full rounded-2xl border border-border/60 bg-card overflow-hidden transition-all hover:-translate-y-1 hover:shadow-hover hover:border-brand-blue/40"
+                  >
+                    <div className={`relative h-24 bg-gradient-to-br ${v.gradient} overflow-hidden`}>
+                      <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-white/20 blur-2xl" />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="h-12 w-12 rounded-xl bg-white/15 backdrop-blur-md border border-white/30 flex items-center justify-center">
+                          <Icon className="h-5 w-5 text-white" strokeWidth={1.6} />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="p-5">
+                      <h3 className="font-heading text-base font-semibold leading-snug">{s.name}</h3>
+                      <p className="mt-1.5 text-sm text-muted-foreground line-clamp-2">{s.tagline}</p>
+                    </div>
+                  </Link>
+                </Reveal>
+              );
+            })}
+          </div>
+          {servicesErr && !servicesLoading && (
+            <div
+              data-testid="services-error"
+              className="mt-6 flex items-center justify-between gap-4 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm"
+            >
+              <span className="text-amber-200 dark:text-amber-300">
+                Couldn't reach the server. Try again in a few seconds.
+              </span>
+              <button
+                onClick={loadServices}
+                className="inline-flex items-center gap-2 rounded-lg border border-border/60 bg-card px-3 py-1.5 text-xs font-semibold hover:bg-secondary"
+                data-testid="retry-services"
+              >
+                <RefreshCw className="h-3.5 w-3.5" /> Retry
+              </button>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="container py-20 md:py-28">
+        <Reveal>
+          <div className="max-w-2xl">
+            <p className="text-xs uppercase tracking-[0.2em] text-brand-violet font-bold">What people say</p>
+            <h2 className="mt-2 text-3xl md:text-4xl font-bold tracking-tight font-heading">Loved by everyday users</h2>
+          </div>
+        </Reveal>
+        <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-6">
+          {TESTIMONIALS.map((t, i) => (
+            <Reveal key={t.name} delay={(i % 3) + 1}>
+              <figure className="rounded-2xl border border-border/60 bg-card p-6 h-full">
+                <div className="flex items-center gap-1 text-amber-500">
+                  {Array.from({ length: 5 }).map((_, idx) => <Star key={idx} className="h-3.5 w-3.5 fill-current" />)}
+                </div>
+                <blockquote className="mt-4 text-sm leading-relaxed text-foreground/90">"{t.quote}"</blockquote>
+                <figcaption className="mt-5 flex items-center gap-3">
+                  <img src={t.avatar} alt={t.name} className="h-10 w-10 rounded-full object-cover" />
+                  <div>
+                    <div className="text-sm font-semibold">{t.name}</div>
+                    <div className="text-xs text-muted-foreground">{t.role}</div>
+                  </div>
+                </figcaption>
+              </figure>
+            </Reveal>
+          ))}
+        </div>
+      </section>
+
+      {/* Latest blog */}
+      <section className="bg-muted/20 border-y border-border/60">
+        <div className="container py-20 md:py-28">
+          <Reveal>
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <p className="text-xs uppercase tracking-[0.2em] text-brand-violet font-bold">From the blog</p>
+                <h2 className="mt-2 text-3xl md:text-4xl font-bold tracking-tight font-heading">Reads worth your time</h2>
+              </div>
+              <Link to="/blog" className="text-sm font-semibold inline-flex items-center gap-1 text-brand-blue" data-testid="blog-see-all">
+                All posts <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </Reveal>
+          <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-6">
+            {posts.map((p, i) => (
+              <Reveal key={p.slug} delay={(i % 3) + 1}>
+                <Link
+                  to={`/blog/${p.slug}`}
+                  data-testid={`home-blog-${p.slug}`}
+                  className="group block rounded-2xl border border-border/60 bg-card overflow-hidden hover:-translate-y-1 transition-all hover:shadow-hover"
+                >
+                  {p.cover_image && (
+                    <div className="aspect-[16/9] overflow-hidden">
+                      <img src={p.cover_image} alt={p.title} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                    </div>
+                  )}
+                  <div className="p-5">
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-brand-violet font-bold">{p.category}</p>
+                    <h3 className="mt-2 font-heading text-lg font-semibold leading-snug">{p.title}</h3>
+                    <p className="mt-2 text-sm text-muted-foreground line-clamp-2">{p.excerpt}</p>
+                  </div>
+                </Link>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="container py-20 md:py-28">
+        <div className="grid lg:grid-cols-[1fr_1.4fr] gap-10">
+          <Reveal>
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-brand-violet font-bold">FAQ</p>
+              <h2 className="mt-2 text-3xl md:text-4xl font-bold tracking-tight font-heading">Common questions</h2>
+              <p className="mt-3 text-muted-foreground">Can't find what you need? <Link to="/contact" className="text-brand-blue font-semibold">Ask us →</Link></p>
+            </div>
+          </Reveal>
+          <Reveal delay={1}>
+            <Accordion type="single" collapsible className="rounded-2xl border border-border/60 bg-card divide-y divide-border/60">
+              {HOME_FAQ.map((f, i) => (
+                <AccordionItem key={i} value={`q-${i}`} className="px-5 border-0">
+                  <AccordionTrigger className="text-left font-semibold" data-testid={`home-faq-${i}`}>{f.q}</AccordionTrigger>
+                  <AccordionContent className="text-sm text-muted-foreground leading-relaxed">{f.a}</AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="container pb-24">
+        <Reveal>
+          <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-brand-gradient text-white p-10 md:p-16 shadow-hover">
+            <div className="absolute -top-24 -right-20 h-72 w-72 rounded-full bg-white/15 blur-3xl" />
+            <div className="absolute -bottom-24 -left-20 h-72 w-72 rounded-full bg-black/20 blur-3xl" />
+            <div className="relative max-w-2xl">
+              <h2 className="text-3xl md:text-5xl font-bold tracking-tight font-heading">Try a tool. Or hire us.</h2>
+              <p className="mt-4 text-white/85 max-w-lg">Pick a tool from the list, or send us a quick brief and we'll get back within a day.</p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link to="/tools" className="inline-flex items-center gap-2 rounded-xl bg-white text-brand-navy px-5 py-3 text-sm font-semibold hover:bg-white/95" data-testid="footer-cta-tools">Open tools</Link>
+                <Link to="/contact" className="inline-flex items-center gap-2 rounded-xl border border-white/40 px-5 py-3 text-sm font-semibold hover:bg-white/10" data-testid="footer-cta-contact">Get a quote</Link>
+              </div>
+            </div>
+          </div>
+        </Reveal>
+      </section>
+    </div>
+  );
+}

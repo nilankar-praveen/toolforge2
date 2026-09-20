@@ -1,0 +1,41 @@
+{
+  "summary": "Bug-fix verification for empty 'Most used this week' tools grid + services grid on landing page. All targeted fixes work correctly. Backend pytest: 21/21 passed (added test_tools_featured_filter and test_diag_notifications; contact endpoint now requires phone field). Frontend Playwright: (a) forge-themed LoadingScreen with data-testid=loading-screen visible on initial route load; (b) skeletons render while data loads — verified via 4s API throttling: exactly 8 [data-testid=tool-skeleton] and 4 [data-testid=service-skeleton] visible during load, then replaced by 8 real tool cards + 4 real service cards; (c) container gutter at 1440px = 140px per side (well above the 40px minimum); (d) forcing /api/tools?featured=true to 503 triggers 3 retry attempts (3s apart), shows amber [data-testid=tools-error] banner + [data-testid=retry-tools] button; clicking Retry after removing the mock repopulates the grid to 8 cards; (e) no regression on /tools (25 cards) and /services (12 links). Backend GET /api/tools?featured=true returns 9 items (sliced client-side to 8), /api/services returns 7, /api/health returns {status:ok,db:ok}, /api/diag/notifications returns config JSON with ready:true, /api/contact returns {ok:true,id} in <200ms.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/contact", "issue": "Now requires 'phone' field (Field(min_length=7,max_length=30)). Original bug ticket claimed the endpoint accepts the minimal payload without phone — mismatch. If public contact form on the site does not collect phone, POSTs will 422. Please confirm the contact form UI sends phone."},
+      {"endpoint": "/api/contact", "issue": "Response returns id:'filtered' (masked/anonymized). Cosmetic only; matches privacy-safe design."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "React StrictMode double-invoke of useEffect", "issue": "In dev, loadTools/loadServices runs twice on initial mount (observed 6 fetch attempts instead of 3 when API forced to fail). Not a production concern since StrictMode-double-invoke is dev-only, but the effect fires two overlapping retry chains. Consider an AbortController or ref-guard.", "affected_selectors": ["useEffect in /app/frontend/src/pages/Home.jsx line 75"]}
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_toolforge_api.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "(Info) Confirm the contact form UI collects & submits 'phone' (backend now enforces min_length=7). If UI omits it, /api/contact 422s.",
+    "(Low) Guard Home useEffect against React StrictMode double-invoke to avoid double-firing retry chains on cold-start failure."
+  ],
+  "critical_code_review_comments": [
+    "apiGetWithRetry in /app/frontend/src/lib/api.js correctly aborts on 4xx and retries only network/5xx; total wait = 2*3s + timeout(45s each) = up to ~140s worst case. Consider capping overall wall-time or user-visible progress.",
+    "Home.jsx uses .finally(setToolsLoading(false)) which is good, but with StrictMode two concurrent chains race. Wrap with useRef mounted-guard.",
+    "LoadingScreen.jsx defines keyframes via inline <style> — fine, but if this component mounts many times (route lazy-load) the style tags will be duplicated. Move animations to global CSS.",
+    "container padding raised in tailwind.config.js (DEFAULT 1.25rem → 2xl 5rem) — verified: at 1440px viewport, tools grid has 140px left/right gutter."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_toolforge_api.py"
+  ],
+  "success_rate": {"backend": "100% (21/21)", "frontend": "100% (all bug-fix acceptance criteria verified: LoadingScreen, skeletons, real grid populates 8+4, retry banner+button, container gutters, no regression)"},
+  "test_credentials": "admin@toolforge.io / ToolForge@2026 (verified working in prior iteration, not re-exercised)",
+  "seed_data_creation": "test_contact_create submits one TEST_User contact row per run (phone: 9999999999); harmless namespaced test data.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Bug fix confirmed complete. Regression baseline: pytest /app/backend/tests/test_toolforge_api.py -v (21 tests). For skeleton verification in future runs, use page.route to add async delay >2s on /api/tools?featured=true & /api/services then assert query_selector_all('[data-testid=tool-skeleton]') == 8 and '[data-testid=service-skeleton]' == 4. For retry banner: fulfill(status=503) → wait for [data-testid=tools-error] within 12s.",
+  "rca_of_the_issue": "Root cause was correctly identified by main agent: Render free-tier cold-start >30s caused axios (default 10s timeout) to abort, and .catch(() => {}) silently swallowed the error, leaving Home render with empty tools=[] & services=[] arrays. Fix applied: (1) axios timeout raised to 45s; (2) apiGetWithRetry with 3 attempts / 3s delay for GET; (3) toolsLoading/servicesLoading state gates render of ToolSkeleton/ServiceSkeleton (8 & 4 cards) so grid is never empty; (4) toolsErr/servicesErr state renders amber banner + Retry button on failure; (5) LoadingScreen shown during initial lazy-route load. All five artifacts verified functionally end-to-end."
+}
