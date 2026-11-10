@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { ChevronRight, ShieldCheck, ArrowLeft, ArrowRight } from "lucide-react";
 import { api } from "@/lib/api";
 import { TOOL_COMPONENTS } from "@/data/toolsRegistry";
+import { FALLBACK_TOOLS } from "@/data/catalog";
 import AdSlot from "@/components/AdSlot";
 import Reveal from "@/components/Reveal";
 import Seo from "@/components/Seo";
@@ -21,15 +22,21 @@ export default function ToolPage() {
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
-    setTool(null);
+    const local = FALLBACK_TOOLS.find((t) => t.slug === slug) || null;
+    const localRelated = (cat) => FALLBACK_TOOLS.filter((t) => t.category === cat && t.slug !== slug).slice(0, 4);
+    setTool(local);
+    setRelated(local ? localRelated(local.category) : []);
     setNotFound(false);
     api.get(`/tools/${slug}`)
       .then((r) => {
         setTool(r.data);
         api.get(`/tools`, { params: { category: r.data.category } })
-          .then((rr) => setRelated(rr.data.filter((t) => t.slug !== r.data.slug).slice(0, 4)));
+          .then((rr) => setRelated(rr.data.filter((t) => t.slug !== r.data.slug).slice(0, 4)))
+          .catch(() => {});
       })
-      .catch(() => setNotFound(true));
+      .catch((e) => {
+        if (e.response?.status === 404 || !local) setNotFound(true);
+      });
   }, [slug]);
 
   if (notFound) {

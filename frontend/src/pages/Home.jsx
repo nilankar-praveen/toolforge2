@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { ArrowRight, RefreshCw, Search, Star } from "lucide-react";
+import { ArrowRight, Search, Star } from "lucide-react";
 import { api, apiGetWithRetry } from "@/lib/api";
 import ToolCard from "@/components/ToolCard";
 import AdSlot from "@/components/AdSlot";
@@ -10,72 +10,26 @@ import Seo from "@/components/Seo";
 import { useCommandPalette } from "@/components/CommandPalette";
 import { TESTIMONIALS, HOME_FAQ } from "@/data/staticContent";
 import { getServiceVisual } from "@/data/serviceVisuals";
+import { FALLBACK_TOOLS, FALLBACK_SERVICES } from "@/data/catalog";
 import * as Icons from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
-function ToolSkeleton() {
-  return (
-    <div
-      data-testid="tool-skeleton"
-      className="h-40 rounded-2xl border border-border/50 bg-card/60 overflow-hidden animate-pulse"
-    >
-      <div className="p-5 space-y-3">
-        <div className="h-9 w-9 rounded-lg bg-foreground/10" />
-        <div className="h-4 w-3/4 rounded bg-foreground/10" />
-        <div className="h-3 w-1/2 rounded bg-foreground/10" />
-      </div>
-    </div>
-  );
-}
-
-function ServiceSkeleton() {
-  return (
-    <div
-      data-testid="service-skeleton"
-      className="h-48 rounded-2xl border border-border/50 bg-card/60 overflow-hidden animate-pulse"
-    >
-      <div className="h-24 bg-foreground/5" />
-      <div className="p-5 space-y-3">
-        <div className="h-4 w-2/3 rounded bg-foreground/10" />
-        <div className="h-3 w-full rounded bg-foreground/10" />
-      </div>
-    </div>
-  );
-}
-
 export default function Home() {
-  const [tools, setTools] = useState([]);
+  const [tools, setTools] = useState(FALLBACK_TOOLS.filter((t) => t.featured).slice(0, 8));
   const [posts, setPosts] = useState([]);
-  const [services, setServices] = useState([]);
-  const [toolsErr, setToolsErr] = useState(false);
-  const [servicesErr, setServicesErr] = useState(false);
-  const [toolsLoading, setToolsLoading] = useState(true);
-  const [servicesLoading, setServicesLoading] = useState(true);
+  const [services, setServices] = useState(FALLBACK_SERVICES.slice(0, 4));
   const { setOpen } = useCommandPalette();
   const { scrollY } = useScroll();
   const blobY = useTransform(scrollY, [0, 600], [0, 80]);
   const blobY2 = useTransform(scrollY, [0, 600], [0, -60]);
 
-  const loadTools = () => {
-    setToolsErr(false);
-    setToolsLoading(true);
-    apiGetWithRetry("/tools", { params: { featured: true } })
-      .then((r) => setTools(r.data.slice(0, 8)))
-      .catch(() => setToolsErr(true))
-      .finally(() => setToolsLoading(false));
-  };
-  const loadServices = () => {
-    setServicesErr(false);
-    setServicesLoading(true);
-    apiGetWithRetry("/services")
-      .then((r) => setServices(r.data.slice(0, 4)))
-      .catch(() => setServicesErr(true))
-      .finally(() => setServicesLoading(false));
-  };
-
   useEffect(() => {
-    loadTools();
-    loadServices();
+    apiGetWithRetry("/tools", { params: { featured: true } })
+      .then((r) => r.data.length && setTools(r.data.slice(0, 8)))
+      .catch(() => {});
+    apiGetWithRetry("/services")
+      .then((r) => r.data.length && setServices(r.data.slice(0, 4)))
+      .catch(() => {});
     api.get("/blog/posts").then((r) => setPosts(r.data.slice(0, 3))).catch(() => {});
   }, []);
 
@@ -154,32 +108,12 @@ export default function Home() {
           </div>
         </Reveal>
         <div className="mt-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5" data-testid="home-tools-grid">
-          {toolsLoading &&
-            Array.from({ length: 8 }).map((_, i) => <ToolSkeleton key={`sk-${i}`} />)}
-          {!toolsLoading &&
-            tools.map((t, i) => (
+          {tools.map((t, i) => (
               <Reveal key={t.slug} delay={(i % 4) + 1}>
                 <ToolCard tool={t} index={i} />
               </Reveal>
             ))}
         </div>
-        {toolsErr && !toolsLoading && (
-          <div
-            data-testid="tools-error"
-            className="mt-6 flex items-center justify-between gap-4 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm"
-          >
-            <span className="text-amber-200 dark:text-amber-300">
-              Couldn't reach the server (the free host may be waking up).
-            </span>
-            <button
-              onClick={loadTools}
-              className="inline-flex items-center gap-2 rounded-lg border border-border/60 bg-card px-3 py-1.5 text-xs font-semibold hover:bg-secondary"
-              data-testid="retry-tools"
-            >
-              <RefreshCw className="h-3.5 w-3.5" /> Retry
-            </button>
-          </div>
-        )}
         <div className="mt-10"><AdSlot placement="in-content" /></div>
       </section>
 
@@ -194,10 +128,7 @@ export default function Home() {
             </div>
           </Reveal>
           <div className="mt-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5" data-testid="home-services-grid">
-            {servicesLoading &&
-              Array.from({ length: 4 }).map((_, i) => <ServiceSkeleton key={`ssk-${i}`} />)}
-            {!servicesLoading &&
-              services.map((s, i) => {
+            {services.map((s, i) => {
               const v = getServiceVisual(s.slug);
               const Icon = Icons[v.icon] || Icons[s.icon] || Icons.Briefcase;
               return (
@@ -224,23 +155,6 @@ export default function Home() {
               );
             })}
           </div>
-          {servicesErr && !servicesLoading && (
-            <div
-              data-testid="services-error"
-              className="mt-6 flex items-center justify-between gap-4 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm"
-            >
-              <span className="text-amber-200 dark:text-amber-300">
-                Couldn't reach the server. Try again in a few seconds.
-              </span>
-              <button
-                onClick={loadServices}
-                className="inline-flex items-center gap-2 rounded-lg border border-border/60 bg-card px-3 py-1.5 text-xs font-semibold hover:bg-secondary"
-                data-testid="retry-services"
-              >
-                <RefreshCw className="h-3.5 w-3.5" /> Retry
-              </button>
-            </div>
-          )}
         </div>
       </section>
 

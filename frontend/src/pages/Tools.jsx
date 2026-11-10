@@ -1,15 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Search, Filter, X } from "lucide-react";
-import { api } from "@/lib/api";
+import { apiGetWithRetry } from "@/lib/api";
 import ToolCard from "@/components/ToolCard";
 import Reveal from "@/components/Reveal";
 import AdSlot from "@/components/AdSlot";
 import Seo from "@/components/Seo";
+import { FALLBACK_TOOLS, FALLBACK_CATEGORIES } from "@/data/catalog";
 
 export default function Tools() {
-  const [tools, setTools] = useState([]);
-  const [categories, setCategories] = useState([]);
+  const [tools, setTools] = useState(FALLBACK_TOOLS);
+  const [categories, setCategories] = useState(FALLBACK_CATEGORIES);
   const [params, setParams] = useSearchParams();
   const [q, setQ] = useState(params.get("q") || "");
   const [sort, setSort] = useState("featured");
@@ -17,8 +18,8 @@ export default function Tools() {
   const active = params.get("category") || "all";
 
   useEffect(() => {
-    api.get("/tools").then((r) => setTools(r.data)).catch(() => {});
-    api.get("/tools/categories").then((r) => setCategories(r.data)).catch(() => {});
+    apiGetWithRetry("/tools").then((r) => r.data.length && setTools(r.data)).catch(() => {});
+    apiGetWithRetry("/tools/categories").then((r) => r.data.length && setCategories(r.data)).catch(() => {});
   }, []);
 
   const filtered = useMemo(() => {
@@ -117,7 +118,7 @@ export default function Tools() {
           No tools match your search.
         </div>
       ) : (
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+        <div data-testid="tools-grid" className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {filtered.map((t, i) => (
             <ToolCard key={t.slug} tool={t} index={i} />
           ))}

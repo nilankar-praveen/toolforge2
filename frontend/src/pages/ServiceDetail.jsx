@@ -8,6 +8,7 @@ import Reveal from "@/components/Reveal";
 import Seo from "@/components/Seo";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { getServiceVisual } from "@/data/serviceVisuals";
+import { FALLBACK_SERVICES } from "@/data/catalog";
 
 export default function ServiceDetail() {
   const { slug } = useParams();
@@ -16,9 +17,8 @@ export default function ServiceDetail() {
   const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
 
   useEffect(() => {
-    api.get(`/services/${slug}`).then((r) => {
-      setS(r.data);
-    });
+    setS(FALLBACK_SERVICES.find((x) => x.slug === slug) || null);
+    api.get(`/services/${slug}`).then((r) => setS(r.data)).catch(() => {});
   }, [slug]);
 
   const submit = async (e) => {

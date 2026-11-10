@@ -2,14 +2,17 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Check, Sparkles } from "lucide-react";
 import * as Icons from "lucide-react";
-import { api } from "@/lib/api";
+import { apiGetWithRetry } from "@/lib/api";
+import { FALLBACK_SERVICES } from "@/data/catalog";
 import Reveal from "@/components/Reveal";
 import Seo from "@/components/Seo";
 import { getServiceVisual } from "@/data/serviceVisuals";
 
 export default function Services() {
-  const [services, setServices] = useState([]);
-  useEffect(() => { api.get("/services").then((r) => setServices(r.data)); }, []);
+  const [services, setServices] = useState(FALLBACK_SERVICES);
+  useEffect(() => {
+    apiGetWithRetry("/services").then((r) => r.data.length && setServices(r.data)).catch(() => {});
+  }, []);
 
   return (
     <div data-testid="services-page" className="container py-12 md:py-16">
@@ -31,7 +34,7 @@ export default function Services() {
         <p className="mt-3 max-w-2xl text-muted-foreground">If you need a website, a landing page, a logo, an email design, or an old photo touched up — just tell us what you need and we'll send a quote within a day.</p>
       </Reveal>
 
-      <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div data-testid="services-grid" className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {services.map((s, i) => {
           const v = getServiceVisual(s.slug);
           const Icon = Icons[v.icon] || Icons[s.icon] || Icons.Briefcase;

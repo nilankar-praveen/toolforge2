@@ -100,3 +100,9 @@ the uploaded logo (deep navy + blue → violet gradient). Light + dark mode.
 - Service start prices and content are seeded but fully editable from `/admin/services`.
 - Image-based "creative" tools beyond QR Code are marked Coming Soon in the catalog and currently render a friendly placeholder if visited.
 - Frontend axios is configured with `withCredentials: true` and a Bearer token fallback to localStorage (cross-origin friendly).
+
+## 2026-06 — Live site empty tools/services fix
+- Root cause: Render backend (toolforge-api-5zga.onrender.com) not responding at all (even `/` and `/api/health` time out after 280s) → frontend showed empty grids. Live Vercel bundle was also the OLD build (no skeletons) — local commits never pushed.
+- Fix: added built-in catalog `frontend/src/data/catalog.js` (25 tools, 5 categories, 7 services). Home, Tools, Services, ToolPage, ServiceDetail now render instantly from it and swap in API data when the server responds. Verified with all /api calls blocked.
+- User action: click "Save to GitHub" so Vercel redeploys; check Render dashboard (Events/Logs) for failed deploy / crash / suspended service.
+- Backlog: Stripe (P1), Affiliate system (P1), Twilio WhatsApp (P2), AI image tools (P2), Tool of the day (P3), Gmail SMTP on Render verification.
